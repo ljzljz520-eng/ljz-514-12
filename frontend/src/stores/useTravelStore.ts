@@ -10,13 +10,41 @@ export type TravelNode = {
   desc?: string;
 };
 
+export type RouteSegment = {
+  fromId: string;
+  toId: string;
+  distanceMeters: number;
+  walkMinutes: number;
+  slopePercent: number;
+  transfers: number;
+  crowding: number;
+  costMinutes: number;
+};
+
+export type RouteSummary = {
+  pathNodeIds: string[];
+  totalDistanceMeters: number;
+  totalWalkMinutes: number;
+  totalCostMinutes: number;
+  totalTransfers: number;
+  maxSlopePercent: number;
+  avgCrowding: number;
+};
+
 export type PathResult = {
   startId: string;
   endId: string;
   totalDistanceMeters: number;
+  totalWalkMinutes: number;
+  totalCostMinutes: number;
+  totalTransfers: number;
+  maxSlopePercent: number;
+  avgCrowding: number;
   pathNodeIds: string[];
   pathNodes: TravelNode[];
   segmentDistanceMeters: number[];
+  segments: RouteSegment[];
+  alternatives: RouteSummary[];
 };
 
 type State = {
@@ -54,7 +82,7 @@ export const useTravelStore = create<State & Actions>((set, get) => ({
       if (!res.ok) throw new Error("nodes_fetch_failed");
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error("nodes_payload_invalid");
-      const nodes = (data as any[])
+      const nodes = (data as Array<Record<string, unknown>>)
         .map((raw) => {
           const id = String(raw?.id ?? "").trim();
           const name = String(raw?.name ?? "").trim();

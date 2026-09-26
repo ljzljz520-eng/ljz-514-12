@@ -35,7 +35,7 @@ public class DataLoader {
                 index.put(header[i].trim(), i);
             }
 
-            requireColumns(index, List.of("id", "name", "lat", "lng"));
+            requireColumns(index, List.of("id", "name", "lat", "lng"), "nodes.csv");
 
             String[] row;
             while ((row = reader.readNext()) != null) {
@@ -106,7 +106,7 @@ public class DataLoader {
                 index.put(header[i].trim().toLowerCase(), i);
             }
 
-            requireColumns(index, List.of("from", "to"));
+            requireColumns(index, List.of("from", "to"), "edges.csv");
 
             List<Edge> edges = new ArrayList<>();
             String[] row;
@@ -128,7 +128,20 @@ public class DataLoader {
                     dist = readDoubleOrNull(row, index, "weightMeters");
                 }
 
-                edges.add(new Edge(from.trim(), to.trim(), dist));
+                Double walkMinutes = readDoubleOrNull(row, index, "walk_minutes");
+                if (walkMinutes == null) {
+                    walkMinutes = readDoubleOrNull(row, index, "walkMinutes");
+                }
+
+                Double slopePercent = readDoubleOrNull(row, index, "slope_percent");
+                if (slopePercent == null) {
+                    slopePercent = readDoubleOrNull(row, index, "slopePercent");
+                }
+
+                Integer transfers = readIntOrNull(row, index, "transfers");
+                Integer crowding = readIntOrNull(row, index, "crowding");
+
+                edges.add(new Edge(from.trim(), to.trim(), dist, walkMinutes, slopePercent, transfers, crowding));
             }
 
             return edges;
@@ -137,10 +150,10 @@ public class DataLoader {
         }
     }
 
-    private static void requireColumns(Map<String, Integer> index, List<String> required) {
+    private static void requireColumns(Map<String, Integer> index, List<String> required, String fileName) {
         for (String col : required) {
             if (!index.containsKey(col)) {
-                throw new IllegalStateException("nodes.csv 缺少必填列：" + col);
+                throw new IllegalStateException(fileName + " 缺少必填列：" + col);
             }
         }
     }
@@ -172,6 +185,19 @@ public class DataLoader {
             return Double.parseDouble(raw);
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    private static Integer readIntOrNull(String[] row, Map<String, Integer> index, String key) {
+        String raw = readColOrNull(row, index, key);
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            Double d = readDoubleOrNull(row, index, key);
+            return d == null ? null : d.intValue();
         }
     }
 }
