@@ -128,7 +128,28 @@ public class DataLoader {
                     dist = readDoubleOrNull(row, index, "weightMeters");
                 }
 
-                edges.add(new Edge(from.trim(), to.trim(), dist));
+                Integer walkSeconds = readIntOrNull(row, index, "walk_seconds");
+                if (walkSeconds == null) {
+                    walkSeconds = readIntOrNull(row, index, "walkSeconds");
+                }
+                Double slope = readDoubleOrNull(row, index, "slope_percent");
+                if (slope == null) {
+                    slope = readDoubleOrNull(row, index, "slopePercent");
+                }
+                Integer crowd = readIntOrNull(row, index, "crowd_level");
+                if (crowd == null) {
+                    crowd = readIntOrNull(row, index, "crowdLevel");
+                }
+                boolean transfer = readBooleanOrFalse(row, index, "transfer");
+                Integer transferSeconds = readIntOrNull(row, index, "transfer_seconds");
+                if (transferSeconds == null) {
+                    transferSeconds = readIntOrNull(row, index, "transferSeconds");
+                }
+                String mode = readColOrNull(row, index, "mode");
+                String note = readColOrNull(row, index, "note");
+
+                edges.add(new Edge(from.trim(), to.trim(), dist, walkSeconds, slope,
+                        transfer, transferSeconds, crowd, mode, note));
             }
 
             return edges;
@@ -173,5 +194,26 @@ public class DataLoader {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private static Integer readIntOrNull(String[] row, Map<String, Integer> index, String key) {
+        String raw = readColOrNull(row, index, key);
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return (int) Math.round(Double.parseDouble(raw));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static boolean readBooleanOrFalse(String[] row, Map<String, Integer> index, String key) {
+        String raw = readColOrNull(row, index, key);
+        if (raw == null || raw.isBlank()) {
+            return false;
+        }
+        String v = raw.trim().toLowerCase();
+        return v.equals("1") || v.equals("true") || v.equals("yes") || v.equals("y") || v.equals("是");
     }
 }

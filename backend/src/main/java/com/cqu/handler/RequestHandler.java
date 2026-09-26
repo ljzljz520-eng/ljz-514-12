@@ -2,6 +2,7 @@ package com.cqu.handler;
 
 import com.cqu.model.PathResult;
 import com.cqu.service.GraphService;
+import com.cqu.service.RouteProfile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -55,7 +56,8 @@ public class RequestHandler {
                 writeJson(exchange, 400, Map.of("error", "缺少必填参数：from、to"));
                 return;
             }
-            PathResult result = graphService.shortestPath(from, to);
+            PathResult result = graphService.shortestPath(from, to,
+                    RouteProfile.fromRaw(q.get("profile")));
             writeJson(exchange, 200, result);
         } catch (IllegalArgumentException e) {
             writeJson(exchange, 400, Map.of("error", e.getMessage()));

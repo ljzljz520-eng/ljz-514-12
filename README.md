@@ -7,9 +7,16 @@
 
 ## 📦 数据文件
 - `backend/src/main/resources/nodes.csv`：景点节点（必需）
-- `backend/src/main/resources/edges.csv`：边数据（可选，存在则优先使用；否则按地理距离自动生成边）
+- `backend/src/main/resources/edges.csv`：景点之间的真实连接（可选，存在则优先使用；否则按地理距离自动生成边）
 
-`edges.csv` 格式：至少包含表头 `from,to`；可选第三列 `distance_meters`（若缺省则按两点经纬度计算球面距离）。
+`edges.csv` 至少包含 `from,to`，并记录五个权重维度（均可缺省）：
+`distance_meters`（距离）、`walk_seconds`（步行/乘车耗时）、`slope_percent`（坡度，正上坡/负下坡）、
+`transfer`+`transfer_seconds`（是否换乘与等候）、`crowd_level`（拥挤程度 0-4），
+另支持 `mode`（walk/bus/rail/cableway/escalator）与 `note`（路况说明）。
+
+算法默认按**综合耗时**（基础耗时 + 坡度附加 + 拥挤延误 + 换乘等候）找路，
+也支持最短距离、最少换乘；页面会逐段展示耗时构成，并对比各走法说明“为什么这条路更合适”。
+详见 [docs/设计文档.md](./docs/设计文档.md)。
 
 文档索引：见 [docs/README.md](./docs/README.md)。
 
